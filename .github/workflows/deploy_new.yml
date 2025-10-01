@@ -1,6 +1,5 @@
-name: Deploy Next.js App to Azure
+name: Deploy Next.js App to Azure via CLI
 
-# mainブランチへのpush時、または手動実行時にトリガー
 on:
   push:
     branches: [ main ]
@@ -10,6 +9,7 @@ env:
   AZURE_WEBAPP_NAME: 'azure-nextjs-sample-from-guide-gde7ckachxb4cdaq'
   AZURE_RESOURCE_GROUP_NAME: 'nextjs_deploy_test_free'
   NODE_VERSION: '20.x'
+  PACKAGE_PATH: './.next/standalone' # デプロイするフォルダのパス
 
 jobs:
   build-and-deploy:
@@ -31,23 +31,26 @@ jobs:
       - name: Build application
         run: npm run build
 
-      # standaloneパッケージに必要なファイルを正しい構造でコピーします
-      - name: Prepare standalone package for deployment
+      - name: Prepare standalone package
         run: |
-          cp -r public .next/standalone/
-          cp -r .next/static .next/standalone/.next/
+          cp -r public ${{ env.PACKAGE_PATH }}/
+          cp -r .next/static ${{ env.PACKAGE_PATH }}/.next/
 
-      # サービスプリンシパルを使ってAzureにログインします
+      # サービスプリンシパルでAzureにログインします (これは成功することが証明されています)
       - name: Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 最後のデプロイステップ
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          resource-group-name: ${{ env.AZURE_RESOURCE_GROUP_NAME }} # 念のためリソースグループも指定
-          package: './.next/standalone' # パッケージのパスを正しい場所に変更
-          slot-name: '' # Freeプランのためスロット指定を無効化
+      # --- ここからが新しいデプロイ方法 ---
+      - name: 'Zip the deployment package'
+        run: |
+          cd ${{ env.PACKAGE_PATH }}
+          zip -r ../../../deployment.zip .
+
+      - name: 'Deploy to App Service using Azure CLI'
+        run: |
+          az webapp deployment source config-zip \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --src deployment.zip
