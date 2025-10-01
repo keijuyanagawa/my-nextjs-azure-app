@@ -1,0 +1,26 @@
+jobs:
+  build-and-diagnose: # <-- ジョブ名も変更
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Azureへのログインはこれまで通り行います
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # --- ここからが新しい診断ステップ ---
+      - name: 'Run Azure CLI to list Web Apps in Resource Group'
+        run: |
+          echo "Attempting to list webapps in resource group: nextjs_deploy_test_free"
+          az webapp list --resource-group nextjs_deploy_test_free --output table
+
+      # デプロイは一旦コメントアウトします
+      # - name: Deploy to Azure App Service
+      #   uses: azure/webapps-deploy@v3
+      #   with:
+      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
+      #     resource-group-name: 'nextjs_deploy_test_free'
+      #     package: './.next/standalone' # 注意：ビルドしないのでパスを仮置き```
