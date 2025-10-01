@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  AZURE_WEBAPP_NAME: 'azure-nextjs-sample-from-guide-gde7ckachxb4cdaq.japanwest-01.azurewebsites.net'
+  AZURE_WEBAPP_NAME: 'azure-nextjs-sample-from-guide-gde7ckachxb4cdaq'
   NODE_VERSION: '20.x'
 
 jobs:
