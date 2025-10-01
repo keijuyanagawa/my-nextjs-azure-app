@@ -46,7 +46,11 @@ jobs:
         uses: azure/webapps-deploy@v3
         timeout-minutes: 10
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME  }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }} # <-- publish-profileの代わりにこれを指定
           package: './deploy'
           slot-name: '' # <-- この一行を追加します(Freeプランだから追加してる)
+          # app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          # publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          # package: './deploy'
+          # slot-name: '' # <-- この一行を追加します(Freeプランだから追加してる)
