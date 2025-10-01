@@ -1,3 +1,13 @@
+name: Deploy Next.js to Azure App Service
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  AZURE_WEBAPP_NAME: 'azure-nextjs-sample-from-guide-gde7ckachxb4cdaq'
+  NODE_VERSION: '20.x'
+  
 jobs:
   build-and-diagnose: # <-- ジョブ名も変更
     runs-on: ubuntu-latest
