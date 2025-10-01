@@ -1,4 +1,4 @@
-name: Deploy Next.js App to Azure via CLI
+name: Deploy Next.js App to Azure
 
 on:
   push:
@@ -7,14 +7,11 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 'azure-nextjs-sample-from-guide-gde7ckachxb4cdaq'
-  AZURE_RESOURCE_GROUP_NAME: 'nextjs_deploy_test_free'
   NODE_VERSION: '20.x'
-  PACKAGE_PATH: './.next/standalone' # デプロイするフォルダのパス
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,24 +30,16 @@ jobs:
 
       - name: Prepare standalone package
         run: |
-          cp -r public ${{ env.PACKAGE_PATH }}/
-          cp -r .next/static ${{ env.PACKAGE_PATH }}/.next/
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
 
-      # サービスプリンシパルでAzureにログインします (これは成功することが証明されています)
       - name: Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # --- ここからが新しいデプロイ方法 ---
-      - name: 'Zip the deployment package'
-        run: |
-          cd ${{ env.PACKAGE_PATH }}
-          zip -r ../../../deployment.zip .
-
-      - name: 'Deploy to App Service using Azure CLI'
-        run: |
-          az webapp deployment source config-zip \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
-            --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --src deployment.zip
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: './.next/standalone'
